@@ -4,6 +4,8 @@ import json
 import sqlite3
 import time
 from pathlib import Path
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
@@ -15,7 +17,7 @@ from telemetry import LANReceiver, MQTTReceiver, demo_data, normalize_csv
 
 st.set_page_config(page_title='Levelink · Stabilization Lab', page_icon='◈', layout='wide')
 st.markdown('''<style>
-.block-container {padding-top:2rem;max-width:1500px}
+.block-container {padding-top:4.5rem;max-width:1500px}
 h1 {font-size:2.8rem!important;letter-spacing:-1.5px}
 h2,h3 {letter-spacing:-.5px}
 [data-testid="stMetric"] {background:#111e2b;border:1px solid #263645;border-radius:12px;padding:16px}
@@ -124,7 +126,7 @@ def render_regression(df):
             result = fit_slr(df, axis)
             result['axis'] = axis
             result['source'] = source
-            result['trained_at'] = time.strftime('%H:%M:%S')
+            result['trained_at'] = datetime.now(ZoneInfo('Asia/Kolkata')).isoformat(timespec='seconds')
             st.session_state.model_result = result
         except ValueError as exc:
             st.warning(str(exc))
@@ -160,7 +162,13 @@ def render_regression(df):
         st.warning('Outside the training tilt range: this is extrapolation.')
     st.caption('Derivative action, command clipping, and timing cause departures from a straight line. A high R² mostly shows that firmware commands follow tilt; it is not proof of successful leveling.')
     metadata = {k: result[k] for k in ['slope','intercept','mae','baseline_mae','r2','axis','source','trained_at']}
+    metadata.update(training_samples=len(result['train']), test_samples=len(result['test']),
+        training_tilt_range_deg=[float(result['train'][result['x']].min()),float(result['train'][result['x']].max())],
+        interpretation='Base-tilt to requested servo-command mapping. Not measured payload stability.',
+        provenance=sorted(df.source.astype(str).unique().tolist()) if 'source' in df else [source])
     st.download_button('Download model report · JSON', json.dumps(metadata, indent=2), 'levelink-slr.json', 'application/json')
+    residuals['predicted_command'] = result['predicted']
+    st.download_button('Download held-out predictions · CSV', residuals.to_csv(index=False), 'levelink-held-out.csv', 'text/csv')
 
 
 def setup():
