@@ -6,3 +6,5 @@ __pycache__/
 *.db-shm
 *.db-wal
 **/wifi_config.h
+**/build/
+.DS_Store

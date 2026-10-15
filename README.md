@@ -44,7 +44,7 @@ This is local wireless telemetry. The AP itself has no internet uplink. A cloud 
 
 The original control calculations, gyro biases, angle offsets, servo range, pins, and gains are preserved. Human-readable periodic output is replaced by 10 Hz JSON from a low-priority task on core 0. The same task optionally handles the HTTP endpoint. A protected snapshot shares data with the control loop. Failed MPU reads emit `sensor_ok=false`, retain last-known tilt, and retain your existing neutral-command response; timing and previous-error values are refreshed on failure.
 
-Wi-Fi/telemetry still consume shared CPU, power, and memory; compare physical behavior to your original sketch. The included firmware targets the dual-core ESP32 DevKit and has not been compiled or tested against your hardware here. If Wi-Fi affects behavior, disable it and use USB. Servo mechanical limits and supply suitability must be established on your actual build; the original 0–180° range is retained, not certified safe.
+Wi-Fi/telemetry still consume shared CPU, power, and memory; compare physical behavior to your original sketch. The firmware targets the dual-core ESP32 DevKit and has been compiled with the user's Arduino-ESP32 3.3.11 package. A startup crash was captured on the ESP32-D0WD-V3: `spinlock_acquire` during `esp_bt_mem_release` in `initArduino`, before `setup()`. The sketch overrides the core's supported `btInUse()` hook to retain Bluetooth memory and avoid that failing release path; Bluetooth is not started. This costs some available heap. If Wi-Fi affects behavior, disable it and use USB. Servo mechanical limits and supply suitability must be established on your actual build; the original 0–180° range is retained, not certified safe.
 
 ## SLR experiment
 

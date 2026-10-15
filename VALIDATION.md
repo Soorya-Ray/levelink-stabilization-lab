@@ -8,4 +8,6 @@ Coverage: telemetry validation and CSV roundtrip; malformed packets; chronologic
 
 The local Streamlit server was started and the rendered control room was verified in the in-app browser.
 
-Not verified: Arduino compilation, firmware upload, actual IMU/servo operation, real MQTT broker connectivity, and Streamlit Cloud deployment. Cloud hosting requires the account setup described in DEPLOY.md. Hardware behavior must be checked against your known-working sketch.
+Firmware follow-up: compiled with Arduino-ESP32 3.3.11 for the ESP32 Dev Module. Captured a pre-setup crash in Bluetooth memory release, added the core-supported btInUse() override, and flashed the corrected application uncompressed at 0x10000. Flash hash verified. A fresh boot produced STABILIZATION STARTED and 99 healthy sensor packets over approximately ten seconds, without assertion/panic/brownout markers. The last observed tilt was approximately roll 170°, pitch 46°, with the top command at its lower limit; physical leveling and mechanism behavior require user verification.
+
+Not verified: actual servo shaft movement and physical stabilization performance, real MQTT broker connectivity, and Streamlit Cloud deployment. Cloud hosting requires the account setup described in DEPLOY.md. Hardware behavior must be checked against your known-working sketch.

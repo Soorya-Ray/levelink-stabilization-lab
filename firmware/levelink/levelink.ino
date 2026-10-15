@@ -3,6 +3,13 @@
 #include <math.h>
 #include "telemetry_link.h"
 
+// Arduino-ESP32 3.3.11 on this ESP32 crashes in automatic BT memory
+// release before setup(). Keep that memory reserved via the core's
+// supported weak hook. This does not start Bluetooth or alter control.
+extern "C" bool btInUse(void) {
+  return true;
+}
+
 // =====================================================
 // PIN CONFIGURATION
 // =====================================================
