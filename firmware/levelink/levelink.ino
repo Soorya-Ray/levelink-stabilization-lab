@@ -2,6 +2,7 @@
 #include <ESP32Servo.h>
 #include <math.h>
 #include "telemetry_link.h"
+#include "driver/gpio.h"
 
 // Arduino-ESP32 3.3.11 on this ESP32 crashes in automatic BT memory
 // release before setup(). Keep that memory reserved via the core's
@@ -21,6 +22,25 @@ extern "C" bool btInUse(void) {
 
 #define TOP_SERVO_PIN 26
 #define BOTTOM_SERVO_PIN 27
+
+// Startup-only pad readback: observe the output without disconnecting LEDC.
+// This verifies pulses at the ESP32 pin, not continuity to the servo connector.
+static uint32_t observeServoPulse(int pin) {
+  gpio_num_t gpio = static_cast<gpio_num_t>(pin);
+  if (gpio_input_enable(gpio) != ESP_OK) return 0;
+  uint32_t start = micros();
+  while (gpio_get_level(gpio)) {
+    if (uint32_t(micros()-start) > 60000) return 0;
+  }
+  while (!gpio_get_level(gpio)) {
+    if (uint32_t(micros()-start) > 60000) return 0;
+  }
+  uint32_t rising = micros();
+  while (gpio_get_level(gpio)) {
+    if (uint32_t(micros()-start) > 60000) return 0;
+  }
+  return uint32_t(micros()-rising);
+}
 
 
 // =====================================================
@@ -191,6 +211,13 @@ void setup() {
   pitchAngle = 0.0;
 
   previousTime = micros();
+
+  Serial.printf("PWM CHECK top: attached=%d freq=%luHz duty=%lu pulse=%luus\n",
+    topServo.attached(),(unsigned long)ledcReadFreq(TOP_SERVO_PIN),
+    (unsigned long)ledcRead(TOP_SERVO_PIN),(unsigned long)observeServoPulse(TOP_SERVO_PIN));
+  Serial.printf("PWM CHECK bottom: attached=%d freq=%luHz duty=%lu pulse=%luus\n",
+    bottomServo.attached(),(unsigned long)ledcReadFreq(BOTTOM_SERVO_PIN),
+    (unsigned long)ledcRead(BOTTOM_SERVO_PIN),(unsigned long)observeServoPulse(BOTTOM_SERVO_PIN));
 
 
   Serial.println();

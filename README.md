@@ -80,3 +80,7 @@ Run `pip install pytest`, then `python -m pytest -q`. Tests cover packet validat
 - [Streamlit fragments](https://docs.streamlit.io/develop/api-reference/execution-flow/st.fragment)
 - [MQTT Python client](https://eclipse.dev/paho/files/paho.mqtt.python/html/client.html)
 - [HiveMQ Cloud getting started](https://docs.hivemq.com/hivemq-cloud/quick-start-guide.html)
+
+### Startup PWM diagnostic
+
+The firmware prints `PWM CHECK` for GPIO26 and GPIO27 at neutral before Wi-Fi starts. It reports attachment, LEDC frequency/duty, and a pulse duration measured by enabling input readback on the output pad. Observed neutral pulses on the test board were 50 Hz and approximately 1484 microseconds. This does not verify power or the signal at the servo connector; check the separate supply, common ground, and signal wiring if the motors do not respond.
